@@ -1,54 +1,65 @@
 package main;
 
-import java.io.BufferedReader;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Properties;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 import utils.*;
+
 public class Main {
 	
 	private String workDir = System.getProperty("user.dir");
 	private static Config config = Config.getInstance();
 	
-	public static void main(String[] args) {
+	
+	public static void main(String[] args) throws IOException, InterruptedException {
 		
 		Main main = new Main();
 		
 		File tempFile = new File(main.workDir + "\\public\\log.txt"); 
-	    if (tempFile.delete()) { 
-	      System.out.println("Deleted the file: " + tempFile.getName() );
-	    } else {
-	      System.out.println("Failed to delete the file. Couldn't find the file.");
+	    if (!main.deleteFile(tempFile)) {
+	    	return;
 	    }
 	    
-	    File file = new File(main.workDir + "\\public\\repo");
-	    boolean bool = file.mkdir();
-	    if(bool){
-	    	System.out.println("Directory created successfully");
-	    }else{
-	    	System.out.println("Sorry couldn’t create specified directory");
+	    boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+	    if(isWindows) {
+	    	List<ProcessBuilder> builders = Arrays.asList(
+		    	      new ProcessBuilder("cmd.exe", "/c","if exist", main.workDir + "\\public\\repo\\", "rmdir", "/s", "/q", main.workDir + "\\public\\repo\\"), 
+		    	      new ProcessBuilder("cmd.exe", "/c","mkdir", "repo"),
+		    	      new ProcessBuilder("cmd.exe", "/c","git", "clone", config.getProperty("repository_url"), main.workDir + "\\public\\repo"),
+		    	      new ProcessBuilder("cmd.exe", "/c","git --git-dir=./repo\\.git   log --stat --name-only >> "+ main.workDir+"\\"+config.getProperty("file_log_url")),
+		    	      new ProcessBuilder("cmd.exe", "/c","rmdir", "/s", "/q",  main.workDir + "\\public\\repo\\")  
+		    		);
+	    	for (int i =0; i< builders.size();i++) {
+				builders.get(i).directory(new File("public"));
+			}
+		    main.executeCommand(builders);
 	    }
-	    //Clone repo
-	    String cmd = "git clone "+ config.getProperty("repository_url") +" "+ main.workDir + "\\public\\\\repo";
-	    main.executeCommand(cmd);
-	    
-	    //Get data
-	    cmd = "git --git-dir=public\\\\repo\\\\.git log --stat --name-only >> "+ main.workDir+"\\"+config.getProperty("file_log_url");
-	    main.executeCommand(cmd);
-	    
-	    //Delete repo
-	    tempFile = new File("./public\\repo"); 
-	    if (tempFile.delete()) { 
-	      System.out.println("Deleted the file: " + tempFile.getName());
-	    } else {
-	      System.out.println("Failed to delete the file. Couldn't find the file.");
+	    else {
+	    	System.out.println("Linux not yet supported");
 	    }
-	    
-	    main.getCommits();
+
+	  
+	}
+	
+	public boolean deleteFile(File file) {
+		if(file.exists()) {
+			if(file.delete()) {
+				return true;
+			}
+			else {
+		    	System.out.println("Error deleting file: "+file.getAbsolutePath());
+				return false;
+			}
+		}else {
+			System.out.println("File does not exist: " +file.getAbsolutePath());
+			return true;
+		}
 	}
 	
 	public void getCommits() {
@@ -67,22 +78,26 @@ public class Main {
 	}
 	
 	
-	public void executeCommand(String cmd) {
-		try {
-			System.out.println("Running cmd command: "+cmd);
-		    Runtime run = Runtime.getRuntime();
-		    Process pr = run.exec(cmd);
-		    pr.waitFor();
-			BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-		    String line = "";
-		    while ((line=buf.readLine())!=null) {
-		    	System.out.println(line);
+	public boolean executeCommand(List<ProcessBuilder> builders) throws IOException, InterruptedException {
+		
+		for (int i = 0; i < builders.size(); i++) {
+			ProcessBuilder builder = builders.get(i);
+			builder.directory(new File("public"));
+		    builder.redirectErrorStream(true);
+		    File log =new File("public\\java-version.log");
+		    builder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+		    builder.redirectError(ProcessBuilder.Redirect.INHERIT);
+		    builder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+		    Process process = builder.start();
+		    int exitCode = process.waitFor();
+		    if(exitCode != 0) {
+		    	return false; 
 		    }
-	    } catch (IOException e) {
-			e.printStackTrace();
-	    }
-	    catch (InterruptedException e) {
-	    	e.printStackTrace();
-	    }
+		    System.out.println("Done running command "+i);
+		    process.destroy();
+		    
+		}
+		return true;
+		
 	}
 }
