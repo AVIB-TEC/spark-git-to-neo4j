@@ -2,6 +2,9 @@ package main;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+
+import database.Connector;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +20,7 @@ public class Main {
 	
 	private String workDir = System.getProperty("user.dir");
 	private static Config config = Config.getInstance();
-	
+	private Connector neo4jInstance = Connector.getInstance();
 	
 	public static void main(String[] args) {
 		
@@ -28,29 +31,26 @@ public class Main {
 			return;
 		}*/
 		String commits = main.getCommits();
-		main.createCommits(commits);
-		
-		//System.out.println(commitSplit[1]);
-		//System.out.println(commitSplit[2]);
-		
-		
+		ArrayList<Commit> commitList = main.createCommits(commits);		
+		for (int i = 0; i < commitList.size(); i++) {
+			
+		}
 		  
 	}
 	
 	private ArrayList<Commit> createCommits(String text) {
 		ArrayList<Commit> commits = new ArrayList<Commit>();
 		String[] commitSplit = text.split("(^|\\n)(commit+(?=\\s{1}\\w{40}\\n))");
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < commitSplit.length; i++) {
 			if(commitSplit[i].equals("")) {
 				continue;
 			}
 			Commit temp = new Commit(commitSplit[i]);
 						
-			/*if(temp.getFiles().length > 0 ) {
+			if(temp.getFiles().size() > 0 ) {
 				commits.add(temp);
-			}*/
+			}
 		}
-		System.out.println(commitSplit[0]);
 		return commits;
 	}
 	
