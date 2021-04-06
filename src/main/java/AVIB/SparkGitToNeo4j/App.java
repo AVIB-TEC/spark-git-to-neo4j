@@ -1,9 +1,4 @@
-package main;
-
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
-
-import database.Connector;
+package AVIB.SparkGitToNeo4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,28 +9,33 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import utils.*;
+import database.Neo4jHelper;
+import entities.FileNode;
+import main.Commit;
+import utils.Config;
 
-public class Main {
-	
+public class App {
+
 	private String workDir = System.getProperty("user.dir");
 	private static Config config = Config.getInstance();
-	private Connector neo4jInstance = Connector.getInstance();
+	//private Connector neo4jInstance = Connector.getInstance();
 	
 	public static void main(String[] args) {
 		
-		Main main = new Main();
-		
+		App main = new App();
+		Neo4jHelper helper = new Neo4jHelper();
 		/*if(!main.getGitData()) {
 			System.out.println("Error getting git Data.");
 			return;
 		}*/
 		String commits = main.getCommits();
-		ArrayList<Commit> commitList = main.createCommits(commits);		
-		for (int i = 0; i < commitList.size(); i++) {
+		ArrayList<Commit> commitList = main.createCommits(commits);	
+		
+		//Neo4j
+		for (int i = 0; i < 2; i++) {
+			ArrayList<FileNode> files = helper.searchFiles(commitList.get(i));
 			
 		}
-		  
 	}
 	
 	private ArrayList<Commit> createCommits(String text) {

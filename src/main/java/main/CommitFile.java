@@ -22,14 +22,10 @@ public class CommitFile  {
 		this.fullName = fileTxt.trim();		
 		Pattern fullnameRegex = Pattern.compile(config.getProperty("regex_file_name"));
 		this.name =  getMatch(fullnameRegex.matcher(this.fullName));
-		
 		fileTxt = fileTxt.replace(this.name, "");
-		
-
 		this.name = this.name.replaceAll("\\.\\w+", "");
 
 		List<String> ignorePaths = Arrays.asList(new String[]{"src","Src","Tests","tests"});
-		
 		String[] tempFilter = fileTxt.split("\\/|\\.");
 		ArrayList<String> filter= new ArrayList<String>();
 		for (int i = 0; i < tempFilter.length; i++) {
@@ -38,13 +34,7 @@ public class CommitFile  {
 				filter.add(tempFilter[i]);
 			}
 		}
-		
-		this.words = filter.stream()
-			     .distinct()
-			     .collect(Collectors.toList());
-		
-		System.out.println("Fullname: "+this.fullName);
-		System.out.println("Words: "+this.words);
+		this.words = filter.stream().distinct().collect(Collectors.toList());
 	}
 	
 	private String getMatch(Matcher matcher) {
