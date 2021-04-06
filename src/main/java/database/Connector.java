@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import entities.FileNode;
+import main.Commit;
 
 public class Connector implements AutoCloseable{
     private final Driver driver;
@@ -93,9 +94,66 @@ public class Connector implements AutoCloseable{
         while (result.hasNext()){
             org.neo4j.driver.Record record = result.next();
             nodes.add(new FileNode(record.get("c.name").asString(), record.get("c.qualifiedname").asString()));
-            System.out.println( String.format( "Got class with name: %s and qualifiedname: %s", record.get("c.name").asString(), record.get("c.qualifiedname").toString()));
         }
         return nodes;
+    }
+    
+    public void saveCommit(String id, Commit commit, FileNode file) {
+    	
+    	try ( Session session = driver.session()){
+    		session.writeTransaction( tx -> saveCommit( tx, id, commit, file));
+    		session.close();
+   	 	}
+    }
+    
+    private Result saveCommit(final Transaction tx, String id, Commit commit, FileNode file) {
+    	final String commitId = commit.getId();
+    	final String author = commit.getAuthor();
+    	final String date = commit.getDate();
+    	final String comment = commit.getComment();
+    	final String qualifiedname = file.getQualifiedname();
+    	Result result = tx.run( " MATCH (p:Project{id:$neo4j_project_id})-[:HAS_CLASS]->(class:Class) " +
+        		" WHERE class.qualifiedname = $qualifiedname " +
+        		" MERGE (commit:Commit{id: $commitid, author: $author, " +
+        		" date:$date, comment: $comment}) " +
+        		" MERGE (p)-[:HAS_COMMIT]->(commit) " +
+        		" MERGE (class)-[:CHANGED_IN]->(commit) " +
+        		" ON CREATE SET class.changes_count = 1 " +
+        		" ON MATCH SET class.changes_count = class.changes_count + 1 ",
+        		parameters("neo4j_project_id", id, "qualifiedname", qualifiedname,
+        			   "commitid", commitId, "author", author, "date", date,
+        			   "comment", comment)
+        	);
+        while (result.hasNext()){
+            org.neo4j.driver.Record record = result.next();
+        }
+        return null;
+    }
+    
+    public void commitFileRelationship(String id, FileNode current, FileNode compareFile) {
+    	
+    	try ( Session session = driver.session()){
+    		session.writeTransaction( tx -> commitFileRelationship( tx, id, current, compareFile));
+    		session.close();
+   	 	}
+    }
+    
+    private Result commitFileRelationship(final Transaction tx, final String id, FileNode current, FileNode compareFile) {
+    	final String fileQualifiedname = current.getQualifiedname();
+    	final String tempQualifiedname = compareFile.getQualifiedname();
+    	Result result = tx.run( "MATCH (p:Project{id: $id})-[:HAS_CLASS]->(c1:Class { "
+    			+ "qualifiedname: $fileQualifiedname}), (p:Project{id: $id})-[:HAS_CLASS]->(c2:Class{ "
+    			+ "qualifiedname: $tempQualifiedname}) "
+    			+ "MERGE (c1)-[r:CO_EVOLVE]-(c2) "
+    			+ "ON CREATE SET r.changes_count = 1 "
+    			+ "ON MATCH SET r.changes_count = r.changes_count + 1;",
+        		parameters("id", id, "fileQualifiedname", fileQualifiedname,
+        			   "tempQualifiedname", tempQualifiedname)
+        	);
+        while (result.hasNext()){
+            org.neo4j.driver.Record record = result.next();
+        }
+        return null;
     }
     
     

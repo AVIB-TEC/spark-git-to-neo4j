@@ -24,10 +24,10 @@ public class Commit {
 		Pattern filesRegex = Pattern.compile(config.getProperty("regex_files"));
 		
 		//Matcher
-		this.id =  getMatch(idRegex.matcher(commitText));
-		this.author =getMatch(authorRegex.matcher(commitText));
-		this.date = getMatch(dateRegex.matcher(commitText));
-		this.comment = getMatch(commentRegex.matcher(commitText));
+		this.setId(getMatch(idRegex.matcher(commitText)));
+		this.setAuthor(getMatch(authorRegex.matcher(commitText)));
+		this.setDate(getMatch(dateRegex.matcher(commitText)));
+		this.setComment(getMatch(commentRegex.matcher(commitText)));
 		this.files = getMatchFile(filesRegex.matcher(commitText));
 		
 	}
@@ -55,6 +55,38 @@ public class Commit {
 
 	public void setFiles(ArrayList<CommitFile> files) {
 		this.files = files;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getAuthor() {
+		return author;
+	}
+
+	public void setAuthor(String author) {
+		this.author = author;
+	}
+
+	public String getDate() {
+		return date;
+	}
+
+	public void setDate(String date) {
+		this.date = date;
 	}
 	
 }

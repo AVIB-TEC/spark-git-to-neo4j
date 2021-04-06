@@ -18,24 +18,37 @@ public class App {
 
 	private String workDir = System.getProperty("user.dir");
 	private static Config config = Config.getInstance();
-	//private Connector neo4jInstance = Connector.getInstance();
 	
 	public static void main(String[] args) {
+		long startTime = System.nanoTime();
 		
 		App main = new App();
 		Neo4jHelper helper = new Neo4jHelper();
-		/*if(!main.getGitData()) {
+		if(!main.getGitData()) {
 			System.out.println("Error getting git Data.");
 			return;
-		}*/
+		}
 		String commits = main.getCommits();
 		ArrayList<Commit> commitList = main.createCommits(commits);	
 		
+		int totalFiles = 0;
+		int totalRelationships = 0;
 		//Neo4j
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < commitList.size(); i++) {
 			ArrayList<FileNode> files = helper.searchFiles(commitList.get(i));
-			
+			int savedFiles = helper.saveCommit(commitList.get(i),files);
+			totalFiles += files.size();
+	        totalRelationships += savedFiles;
 		}
+		
+		long endTime = System.nanoTime();
+		long totalTime = endTime - startTime;
+		System.out.println("********* ===== Totales ====== ***********");
+		System.out.println("Commits: "+commitList.size());
+		System.out.println("Files found: "+ totalFiles);
+		System.out.println("Relationships created: "+totalRelationships);
+		System.out.println("Execution time: "+ totalTime+" ns");
+		System.out.println("********** ======= Fin ======= ***********");
 	}
 	
 	private ArrayList<Commit> createCommits(String text) {
