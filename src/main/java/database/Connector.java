@@ -6,7 +6,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionWork;
 
 import static org.neo4j.driver.Values.parameters;
 
@@ -98,19 +97,18 @@ public class Connector implements AutoCloseable{
         return nodes;
     }
     
-    public void saveCommit(String id, Commit commit, FileNode file) {
+    public void saveCommit(String id, Commit commit, FileNode file, String comment) {
     	
     	try ( Session session = driver.session()){
-    		session.writeTransaction( tx -> saveCommit( tx, id, commit, file));
+    		session.writeTransaction( tx -> saveCommit( tx, id, commit, file, comment));
     		session.close();
    	 	}
     }
     
-    private Result saveCommit(final Transaction tx, String id, Commit commit, FileNode file) {
+    private Result saveCommit(final Transaction tx, String id, Commit commit, FileNode file, final String comment) {
     	final String commitId = commit.getId();
     	final String author = commit.getAuthor();
     	final String date = commit.getDate();
-    	final String comment = commit.getComment();
     	final String qualifiedname = file.getQualifiedname();
     	Result result = tx.run( " MATCH (p:Project{id:$neo4j_project_id})-[:HAS_CLASS]->(class:Class) " +
         		" WHERE class.qualifiedname = $qualifiedname " +
@@ -125,7 +123,7 @@ public class Connector implements AutoCloseable{
         			   "comment", comment)
         	);
         while (result.hasNext()){
-            org.neo4j.driver.Record record = result.next();
+           result.next();
         }
         return null;
     }
@@ -151,7 +149,7 @@ public class Connector implements AutoCloseable{
         			   "tempQualifiedname", tempQualifiedname)
         	);
         while (result.hasNext()){
-            org.neo4j.driver.Record record = result.next();
+           result.next();
         }
         return null;
     }

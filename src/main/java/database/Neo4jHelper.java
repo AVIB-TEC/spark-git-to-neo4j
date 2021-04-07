@@ -1,7 +1,6 @@
 package database;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import entities.FileNode;
@@ -59,7 +58,7 @@ public class Neo4jHelper {
                 System.out.println("Checked file "+cont+" of "+files.size());
 			}
             cont+=1;
-            instance.saveCommit(projectId, commit, files.get(i));
+            instance.saveCommit(projectId, commit, files.get(i), comment);
             savedFiles+=1;
             FileNode current = files.get(i);
             for (int j = 0; j < files.size(); j++) {
