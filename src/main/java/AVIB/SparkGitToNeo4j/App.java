@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.spark.SparkContext;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+
 import database.Neo4jHelper;
 import entities.FileNode;
 import main.Commit;
@@ -18,53 +22,55 @@ public class App {
 
 	private String workDir = System.getProperty("user.dir");
 	private static Config config = Config.getInstance();
+	private static AvibSparkContext avibSpark = AvibSparkContext.getInstance();
+	private static JavaSparkContext sparkContext;
 	
+	private int totalFiles;
+	private int totalRelationships;
 	public static void main(String[] args) {
-		long startTime = System.nanoTime();
-		
 		App main = new App();
+		sparkContext = avibSpark.getContext();
+		main.processData();
+	}
+	
+	private void processData() {
+		long startTime = System.nanoTime();
 		Neo4jHelper helper = new Neo4jHelper();
-		if(!main.getGitData()) {
+		/*if(!getGitData()) {
 			System.out.println("Error getting git Data.");
 			return;
-		}
-		String commits = main.getCommits();
-		ArrayList<Commit> commitList = main.createCommits(commits);	
+		}*/
 		
-		int totalFiles = 0;
-		int totalRelationships = 0;
-		//Neo4j
-		for (int i = 0; i < commitList.size(); i++) {
-			ArrayList<FileNode> files = helper.searchFiles(commitList.get(i));
-			int savedFiles = helper.saveCommit(commitList.get(i),files);
-			totalFiles += files.size();
-	        totalRelationships += savedFiles;
-		}
+		String commits = getCommits();
+		JavaRDD<Commit> commitList = createCommits(commits);	
+		
+		totalFiles = 0;
+		totalRelationships = 0;
+		commitList.foreach(commit ->{
+			JavaRDD<FileNode> files  = sparkContext.parallelize(helper.searchFiles(commit));
+			files.foreach(file ->{
+				int savedFiles = helper.saveCommit(commit,files);
+				totalFiles += files.count();
+		        totalRelationships += savedFiles;
+			});
+			
+		});
 		
 		long endTime = System.nanoTime();
 		long totalTime = endTime - startTime;
 		System.out.println("********* ===== Totales ====== ***********");
-		System.out.println("Commits: "+commitList.size());
+		System.out.println("Commits: "+commitList.count());
 		System.out.println("Files found: "+ totalFiles);
 		System.out.println("Relationships created: "+totalRelationships);
 		System.out.println("Execution time: "+ totalTime+" ns");
 		System.out.println("********** ======= Fin ======= ***********");
 	}
 	
-	private ArrayList<Commit> createCommits(String text) {
-		ArrayList<Commit> commits = new ArrayList<Commit>();
-		String[] commitSplit = text.split("(^|\\n)(commit+(?=\\s{1}\\w{40}\\n))");
-		for (int i = 0; i < commitSplit.length; i++) {
-			if(commitSplit[i].equals("")) {
-				continue;
-			}
-			Commit temp = new Commit(commitSplit[i]);
-						
-			if(temp.getFiles().size() > 0 ) {
-				commits.add(temp);
-			}
-		}
-		return commits;
+	private JavaRDD<Commit> createCommits(String text) {		
+		List<String> splitData = Arrays.asList(text.split("(^|\\n)(commit+(?=\\s{1}\\w{40}\\n))"));
+		JavaRDD<String> data = sparkContext.parallelize(splitData).filter(row -> !row.equals(""));
+		JavaRDD<Commit> commitList = data.map(row -> new Commit(row)).filter(commit -> commit.getFiles().size() > 0);
+		return commitList;
 	}
 	
 	private boolean getGitData() {
