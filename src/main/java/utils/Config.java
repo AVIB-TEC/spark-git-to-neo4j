@@ -13,7 +13,7 @@ public class Config {
 	
 	private Config() {
 		try {
-			FileInputStream ip= new FileInputStream(workDir +  "\\resources\\config.properties");
+			FileInputStream ip= new FileInputStream(workDir +  "\\src\\main\\resources\\config.properties");
 			prop.load(ip); 
 		} catch (FileNotFoundException e) {
 			System.out.println("Error loading config file.");
