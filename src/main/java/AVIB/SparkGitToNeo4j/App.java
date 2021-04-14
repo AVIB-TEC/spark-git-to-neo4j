@@ -2,14 +2,13 @@ package AVIB.SparkGitToNeo4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
@@ -18,8 +17,9 @@ import entities.FileNode;
 import main.Commit;
 import utils.Config;
 
-public class App {
+public class App implements Serializable {
 
+	private static final long serialVersionUID = 1069136416786151641L;
 	private String workDir = System.getProperty("user.dir");
 	private static Config config = Config.getInstance();
 	private static AvibSparkContext avibSpark = AvibSparkContext.getInstance();
@@ -36,18 +36,20 @@ public class App {
 	private void processData() {
 		long startTime = System.nanoTime();
 		Neo4jHelper helper = new Neo4jHelper();
-		/*if(!getGitData()) {
+		if(!getGitData()) {
 			System.out.println("Error getting git Data.");
 			return;
-		}*/
+		}
 		
 		String commits = getCommits();
 		JavaRDD<Commit> commitList = createCommits(commits);	
 		
 		totalFiles = 0;
 		totalRelationships = 0;
+		System.out.println("--------- Processing commit list ---------");
 		commitList.foreach(commit ->{
 			JavaRDD<FileNode> files  = sparkContext.parallelize(helper.searchFiles(commit));
+			System.out.println("--------- File list created ---------");
 			files.foreach(file ->{
 				int savedFiles = helper.saveCommit(commit,files);
 				totalFiles += files.count();

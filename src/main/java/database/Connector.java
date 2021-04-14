@@ -9,39 +9,27 @@ import org.neo4j.driver.Transaction;
 
 import static org.neo4j.driver.Values.parameters;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+//import java.io.FileInputStream;
+//import java.io.IOException;
+//import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Properties;
+//import java.util.Properties;
 
 import entities.FileNode;
 import main.Commit;
 
 public class Connector implements AutoCloseable{
     private final Driver driver;
-    private String uri ;
-	private String user;
-	private String password;
-	private static Connector instance = null;
+    //private String uri ;
+	//private String user;
+	//private String password;
 	
-    public static Connector getInstance() {
-		if(instance  == null) {
-			synchronized (Connector.class) {
-				if (instance==null) {
-					instance = new Connector();
-				}
-			}
-		}
-		return instance;
-	}
-    
-    private Connector() {
-    	loadConfig();
+    public Connector() {
+    	//loadConfig();
     	//Must change to work with variables
         driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic("neo4j", "admin"));
     }
-    
+    /*
     private void loadConfig() {
 		Properties prop = new Properties();
 		InputStream input = null;
@@ -69,7 +57,8 @@ public class Connector implements AutoCloseable{
 			}
 		}
 	}
-
+	*/
+    
     @Override
     public void close() throws Exception{
         driver.close();

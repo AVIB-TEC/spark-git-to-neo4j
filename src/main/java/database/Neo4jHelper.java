@@ -1,5 +1,6 @@
 package database;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,9 +13,11 @@ import main.Commit;
 import main.CommitFile;
 import utils.Config;
 
-public class Neo4jHelper {
+public class Neo4jHelper implements Serializable {
+	
+	private static final long serialVersionUID = -526782322927255560L;
+	
 	private static Config config = Config.getInstance();
-	private Connector instance = Connector.getInstance();
     private String projectId = config.getProperty("neo4j_project_id");
 	private int recordCoincidence;
 	private static AvibSparkContext avibSpark = AvibSparkContext.getInstance();
@@ -31,10 +34,10 @@ public class Neo4jHelper {
 	public List<FileNode> searchFiles(Commit commit){
 		List<FileNode> filesToSave = new ArrayList<FileNode>();
 		List<CommitFile> filesList = commit.getFiles();
-		JavaRDD<CommitFile> files = sparkContext.parallelize(filesList);
-		
-		files.foreach(file ->{
-        	 List<FileNode> resultList = instance.searchFiles(projectId, file.getName());
+		JavaRDD<CommitFile> files2 = sparkContext.parallelize(filesList);
+		files2.foreach(file ->{
+			 Connector conn = new Connector();
+        	 List<FileNode> resultList = conn.searchFiles(projectId, file.getName());
         	 JavaRDD<FileNode> result = sparkContext.parallelize(resultList);
         	 long size =result.count(); 
         	 if(size == 1) {
@@ -61,11 +64,14 @@ public class Neo4jHelper {
                  }
                  filesToSave.add(maxRecord);
              }
+        	 conn.close();
         });
         return filesToSave;
 	}
 
 	public int saveCommit(Commit commit, JavaRDD<FileNode> files) {
+		
+		System.out.println("--------- Saving commit ---------");
 		long filesSize = files.count();
 		if(files != null && filesSize < 1){
 			return 0;
@@ -78,15 +84,19 @@ public class Neo4jHelper {
 				System.out.println("Checked file "+cont+" of "+filesSize);
 			}
             cont+=1;
-            instance.saveCommit(projectId, commit,file, comment);
+            Connector conn = new Connector();
+            conn.saveCommit(projectId, commit,file, comment);
             savedFiles+=1;
             FileNode current = file;
             files.foreach(file2 ->{
             	if(current != file2) {
             		savedFiles++;
-               		instance.commitFileRelationship(projectId, current, file2);
+            		Connector conn2 = new Connector();
+               		conn2.commitFileRelationship(projectId, current, file2);
+               		conn2.close();
             	}
             });
+            conn.close();
 		});
 
 		System.out.println("Commit: "+commit.getId());
