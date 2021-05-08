@@ -6,7 +6,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class Config {
-	
+
+	private static final long serialVersionUID = 3975634262124767870L;
 	private String workDir = System.getProperty("user.dir");
 	private Properties prop = new Properties();
 	private static Config instance = null; 

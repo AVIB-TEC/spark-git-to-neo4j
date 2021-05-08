@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.spark.api.java.JavaRDD;
@@ -36,10 +37,10 @@ public class App implements Serializable {
 	private void processData() {
 		long startTime = System.nanoTime();
 		Neo4jHelper helper = new Neo4jHelper();
-		if(!getGitData()) {
+		/*if(!getGitData()) {
 			System.out.println("Error getting git Data.");
 			return;
-		}
+		}*/
 		
 		String commits = getCommits();
 		JavaRDD<Commit> commitList = createCommits(commits);	
@@ -48,24 +49,26 @@ public class App implements Serializable {
 		totalRelationships = 0;
 		System.out.println("--------- Processing commit list ---------");
 		commitList.foreach(commit ->{
-			JavaRDD<FileNode> files  = sparkContext.parallelize(helper.searchFiles(commit));
+			List<FileNode> files  = helper.searchFiles(commit);
+			totalFiles+= files.size();
 			System.out.println("--------- File list created ---------");
-			files.foreach(file ->{
-				int savedFiles = helper.saveCommit(commit,files);
-				totalFiles += files.count();
-		        totalRelationships += savedFiles;
-			});
+			for (int i=0; i<files.size();i++) {
+				int savedFiles = helper.saveCommit(commit, files);
+				totalRelationships += savedFiles;
+			}
 			
 		});
 		
 		long endTime = System.nanoTime();
 		long totalTime = endTime - startTime;
+		
 		System.out.println("********* ===== Totales ====== ***********");
 		System.out.println("Commits: "+commitList.count());
 		System.out.println("Files found: "+ totalFiles);
 		System.out.println("Relationships created: "+totalRelationships);
 		System.out.println("Execution time: "+ totalTime+" ns");
 		System.out.println("********** ======= Fin ======= ***********");
+		sparkContext.close();
 	}
 	
 	private JavaRDD<Commit> createCommits(String text) {		

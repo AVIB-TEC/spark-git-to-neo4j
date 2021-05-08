@@ -1,5 +1,6 @@
 package main;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +10,9 @@ import java.util.stream.Collectors;
 
 import utils.Config;
 
-public class CommitFile  {
+public class CommitFile implements Serializable {
+
+	private static final long serialVersionUID = -2292085655692457265L;
 	private String name;
 	private String fullName;
 	private List<String> words;

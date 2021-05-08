@@ -1,13 +1,15 @@
 package main;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import utils.Config;
 
-public class Commit {
+public class Commit implements Serializable{
 	
+	private static final long serialVersionUID = -7179026991822322940L;
 	private static Config config = Config.getInstance();
 	private String id;
 	private String author;

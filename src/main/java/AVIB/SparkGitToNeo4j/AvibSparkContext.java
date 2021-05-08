@@ -25,6 +25,10 @@ public class AvibSparkContext {
 		}
 		return instance;
 	}
+	
+	public void closeSpark() {
+		this.context.close();
+	}
 
 	public JavaSparkContext getContext() {
 		return context;
