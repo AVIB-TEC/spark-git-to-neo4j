@@ -1,5 +1,7 @@
 package AVIB.SparkGitToNeo4j;
 
+//import static spark.Spark.get;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -7,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.spark.api.java.JavaRDD;
@@ -29,19 +30,15 @@ public class App implements Serializable {
 	private int totalFiles;
 	private int totalRelationships;
 	private int cont;
-	public static void main(String[] args) {
-		App main = new App();
-		sparkContext = avibSpark.getContext();
-		main.processData();
-	}
 	
-	private void processData() {
+	
+	private String processData() {
 		long startTime = System.nanoTime();
 		Neo4jHelper helper = new Neo4jHelper();
-		/*if(!getGitData()) {
+		if(!getGitData()) {
 			System.out.println("Error getting git Data.");
-			return;
-		}*/
+			return "Error getting git Data";
+		}
 		
 		String commits = getCommits();
 		JavaRDD<Commit> commitList = createCommits(commits);	
@@ -50,6 +47,7 @@ public class App implements Serializable {
 		totalRelationships = 0;
 		cont = 0;
 		System.out.println("--------- Processing commit list ---------");
+
 		commitList.foreach((commit) ->{
 			List<FileNode> files  = helper.searchFiles(commit);
 			totalFiles+= files.size();
@@ -63,6 +61,12 @@ public class App implements Serializable {
 		long endTime = System.nanoTime();
 		long totalTime = endTime - startTime;
 		
+		String message = "********* ===== Resulst ====== ***********\n";
+		message+= "Commits: "+commitList.count() +"\n";
+		message+= "Files found: "+ totalFiles +"\n";
+		message+= "Relationships created: "+totalRelationships +"\n";
+		message+= "Execution time: "+ totalTime+" ns "+"\n";
+		message+= "********** ======= End ======= ***********\n";
 		System.out.println("********* ===== Totales ====== ***********");
 		System.out.println("Commits: "+commitList.count());
 		System.out.println("Files found: "+ totalFiles);
@@ -70,6 +74,7 @@ public class App implements Serializable {
 		System.out.println("Execution time: "+ totalTime+" ns");
 		System.out.println("********** ======= Fin ======= ***********");
 		sparkContext.close();
+		return  message;
 	}
 	
 	private JavaRDD<Commit> createCommits(String text) {		
@@ -105,7 +110,23 @@ public class App implements Serializable {
 			}
 	    }
 	    else {
-	    	System.out.println("Linux not yet supported");
+	    	System.out.println("Running Linux ");
+	    	List<ProcessBuilder> builders = Arrays.asList(
+	    			new ProcessBuilder("/bin/bash", "/c","if exist", workDir + "/public/repo/", "rm", "-f", workDir + "/public/repo/"), 
+	    			new ProcessBuilder("/bin/bash", "/c","mkdir", "public/repo"),
+	    			new ProcessBuilder("/bin/bash", "/c","git", "clone", config.getProperty("repository_url"), workDir + "/public/repo"),
+	    			new ProcessBuilder("/bin/bash", "/c","git --git-dir=./repo/.git   log --stat --name-only >> "+ workDir+"/"+config.getProperty("file_log_url")),
+	    			new ProcessBuilder("/bin/bash", "/c","rm", "-RF",  workDir + "/public/repo/")  
+	    	);
+	    	for (int i =0; i< builders.size();i++) {
+				builders.get(i).directory(new File("public"));
+			}
+		    try {
+				executeCommand(builders);
+			} catch (Exception e) {
+				System.out.println(e);
+				return false;
+			}
 	    }	
 	    return true;
 	}
@@ -155,6 +176,14 @@ public class App implements Serializable {
 		    process.destroy();
 		}
 		return true;
-		
+	}
+	
+	public static void main(String[] args) {
+		App main = new App();
+		sparkContext = avibSpark.getContext();
+		main.processData();
+		/*get("/", (req, res) -> {
+			return main.processData();
+	    });*/
 	}
 }
