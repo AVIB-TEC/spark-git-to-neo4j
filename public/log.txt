@@ -1,3 +1,129 @@
+commit 82b7bb2545d2a52ccac4e9e0a6c4cd519a250ccf
+Author: Dmitriy Tverdiakov <11927660+injectives@users.noreply.github.com>
+Date:   Thu Apr 29 19:27:36 2021 +0100
+
+    Updating dependencies (#888)
+
+testkit-backend/pom.xml
+
+commit 0cc90eb0e142306e24aac9a650a3d2f2baf93bee
+Author: Antonio Barcélos <antonio.barcelos@neo4j.com>
+Date:   Thu Apr 29 18:10:14 2021 +0200
+
+    testkit-backend: Adding support for TransactionRollback (#887)
+
+commit 4bc50f4366c9f5350c6a794ea35d22837dce50f2
+Author: Dmitriy Tverdiakov <11927660+injectives@users.noreply.github.com>
+Date:   Thu Apr 29 15:44:33 2021 +0100
+
+    Added authorization expired response handling (#886)
+    
+    * Added authorization expired response handling
+    
+    This update adds support for authorization expired response handling. When such error arrives the driver will mark all connections that were created on or before the creation timestamp of the receiving connection for disposal. The connections will be allowed to finish what they are doing and released back to the pool and will be disposed on the next acquire call.
+    
+    This update also makes sure that we always register the HELLO response handler so that we can handle the response appropriately.
+    
+    In addition, it adds the ROLLBACK message support to the driver backend.
+    
+    * Fixed HELLO verification in tests
+    
+    * Fixed BEGIN message handling in stub server scripts
+    
+    * Fixed locks in reactive tests
+    
+    * Added connection hangups
+    
+    * Reverted logging change
+
+driver/src/main/java/org/neo4j/driver/exceptions/AuthorizationExpiredException.java
+driver/src/main/java/org/neo4j/driver/internal/async/UnmanagedTransaction.java
+driver/src/main/java/org/neo4j/driver/internal/async/connection/AuthorizationStateListener.java
+driver/src/main/java/org/neo4j/driver/internal/async/connection/ChannelAttributes.java
+driver/src/main/java/org/neo4j/driver/internal/async/inbound/InboundMessageDispatcher.java
+driver/src/main/java/org/neo4j/driver/internal/async/pool/ConnectionPoolImpl.java
+driver/src/main/java/org/neo4j/driver/internal/async/pool/NettyChannelHealthChecker.java
+driver/src/main/java/org/neo4j/driver/internal/handlers/SessionPullResponseCompletionListener.java
+driver/src/main/java/org/neo4j/driver/internal/messaging/v3/BoltProtocolV3.java
+driver/src/main/java/org/neo4j/driver/internal/retry/ExponentialBackoffRetryLogic.java
+driver/src/main/java/org/neo4j/driver/internal/util/ErrorUtil.java
+driver/src/test/java/org/neo4j/driver/integration/ConnectionHandlingIT.java
+driver/src/test/java/org/neo4j/driver/internal/async/NetworkSessionTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/UnmanagedTransactionTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/connection/ChannelAttributesTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/pool/ConnectionPoolImplTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/pool/NettyChannelHealthCheckerTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/pool/TestConnectionPool.java
+driver/src/test/java/org/neo4j/driver/internal/cluster/loadbalancing/RoutingTableAndConnectionPoolTest.java
+driver/src/test/java/org/neo4j/driver/internal/messaging/v3/BoltProtocolV3Test.java
+driver/src/test/java/org/neo4j/driver/internal/messaging/v4/BoltProtocolV4Test.java
+driver/src/test/java/org/neo4j/driver/internal/messaging/v41/BoltProtocolV41Test.java
+driver/src/test/java/org/neo4j/driver/internal/messaging/v42/BoltProtocolV42Test.java
+driver/src/test/java/org/neo4j/driver/internal/messaging/v43/BoltProtocolV43Test.java
+driver/src/test/java/org/neo4j/driver/internal/retry/ExponentialBackoffRetryLogicTest.java
+driver/src/test/java/org/neo4j/driver/internal/util/ErrorUtilTest.java
+driver/src/test/java/org/neo4j/driver/util/TestUtil.java
+driver/src/test/resources/database_shutdown_at_commit.script
+driver/src/test/resources/read_tx_v4_discard.script
+testkit-backend/src/main/java/neo4j/org/testkit/backend/messages/requests/TestkitRequest.java
+testkit-backend/src/main/java/neo4j/org/testkit/backend/messages/requests/TransactionRollback.java
+
+commit 573e89066920f8ab82e03be245f82f5226953dbd
+Author: Dmitriy Tverdiakov <11927660+injectives@users.noreply.github.com>
+Date:   Mon Apr 19 11:04:16 2021 +0100
+
+    Deprecated and replaced ServerInfo.version() (#878)
+
+driver/clirr-ignored-differences.xml
+driver/src/main/java/org/neo4j/driver/internal/async/NetworkConnection.java
+driver/src/main/java/org/neo4j/driver/internal/async/connection/ChannelAttributes.java
+driver/src/main/java/org/neo4j/driver/internal/async/connection/DirectConnection.java
+driver/src/main/java/org/neo4j/driver/internal/async/connection/RoutingConnection.java
+driver/src/main/java/org/neo4j/driver/internal/handlers/HelloResponseHandler.java
+driver/src/main/java/org/neo4j/driver/internal/spi/Connection.java
+driver/src/main/java/org/neo4j/driver/internal/summary/InternalServerInfo.java
+driver/src/main/java/org/neo4j/driver/internal/util/MetadataExtractor.java
+driver/src/main/java/org/neo4j/driver/summary/ServerInfo.java
+driver/src/test/java/org/neo4j/driver/internal/InternalResultTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/AsyncResultCursorImplTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/NetworkConnectionTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/connection/ChannelAttributesTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/connection/DirectConnectionTest.java
+driver/src/test/java/org/neo4j/driver/internal/async/connection/RoutingConnectionTest.java
+driver/src/test/java/org/neo4j/driver/internal/handlers/HelloResponseHandlerTest.java
+driver/src/test/java/org/neo4j/driver/internal/handlers/PullAllResponseHandlerTestBase.java
+driver/src/test/java/org/neo4j/driver/internal/handlers/SessionPullResponseCompletionListenerTest.java
+driver/src/test/java/org/neo4j/driver/internal/handlers/TransactionPullResponseCompletionListenerTest.java
+driver/src/test/java/org/neo4j/driver/internal/handlers/pulln/BasicPullResponseHandlerTestBase.java
+driver/src/test/java/org/neo4j/driver/internal/util/FailingConnectionDriverFactory.java
+driver/src/test/java/org/neo4j/driver/internal/util/MetadataExtractorTest.java
+testkit-backend/src/main/java/neo4j/org/testkit/backend/messages/requests/ResultConsume.java
+testkit-backend/src/main/java/neo4j/org/testkit/backend/messages/responses/Summary.java
+
+commit 0d8b67119e7dc33f1d87d9db344215a0180a7780
+Author: gjmwoods <42248895+gjmwoods@users.noreply.github.com>
+Date:   Wed Apr 14 15:10:14 2021 +0100
+
+    Dependency update (#875)
+
+pom.xml
+
+commit eed2b9d91b32f68e3be13130099ce8d392b9ae82
+Author: Johannes Donath <johannes.donath@neotechnology.com>
+Date:   Wed Apr 14 09:26:07 2021 +0200
+
+    Bumped the netty revision to 4.1.63.Final (#873)
+
+pom.xml
+
+commit e153bb4e27cae266b8ea73672902bddb2987c943
+Author: gjmwoods <42248895+gjmwoods@users.noreply.github.com>
+Date:   Thu Apr 8 08:46:43 2021 +0100
+
+    Add comment to ensure driver/server dependencies are in synch (#867)
+
+pom.xml
+
 commit b2237b8d38c1cbc37ea69addf5bbb31e9f1df496
 Author: gjmwoods <42248895+gjmwoods@users.noreply.github.com>
 Date:   Wed Mar 31 16:58:07 2021 +0100
