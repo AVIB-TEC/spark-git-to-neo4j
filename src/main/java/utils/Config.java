@@ -14,7 +14,14 @@ public class Config {
 	
 	private Config() {
 		try {
-			FileInputStream ip= new FileInputStream(workDir +  "\\src\\main\\resources\\config.properties");
+			FileInputStream ip;
+			boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+			if(isWindows) {
+				ip = new FileInputStream(workDir +  "\\src\\main\\resources\\config.properties");
+			}
+			else {
+				ip = new FileInputStream(workDir +  "/src/main/resources/config.properties");
+			}
 			prop.load(ip); 
 		} catch (FileNotFoundException e) {
 			System.out.println("Error loading config file.");
