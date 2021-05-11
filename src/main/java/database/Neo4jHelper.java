@@ -26,6 +26,7 @@ public class Neo4jHelper implements Serializable {
 	private FileNode maxRecord;
 	private int cont;
 	private int savedFiles;
+	private static List<String> idList = new ArrayList<String>();
 
 	public Neo4jHelper() {
 		//sparkContext = avibSpark.getContext();
@@ -70,7 +71,18 @@ public class Neo4jHelper implements Serializable {
 	}
 
 	public int saveCommit(Commit commit, List<FileNode> files) {
-
+		String id = commit.getId();
+		if(idList.contains(id)) {
+			System.out.println("Repeated commit: "+id);
+			return 0;
+		}
+		else {
+			idList.add(id);
+			if(idList.size() %10 == 0) {
+				System.out.println("Proccessed "+ idList.size()+" commits.");
+			}
+			
+		}
 		System.out.println("--------- Saving commit ---------");
 		long filesSize = files.size();
 		if (files != null && filesSize < 1) {

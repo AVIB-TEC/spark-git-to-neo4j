@@ -28,6 +28,7 @@ public class App implements Serializable {
 	
 	private int totalFiles;
 	private int totalRelationships;
+	private int cont;
 	public static void main(String[] args) {
 		App main = new App();
 		sparkContext = avibSpark.getContext();
@@ -47,15 +48,15 @@ public class App implements Serializable {
 		
 		totalFiles = 0;
 		totalRelationships = 0;
+		cont = 0;
 		System.out.println("--------- Processing commit list ---------");
-		commitList.foreach(commit ->{
+		commitList.foreach((commit) ->{
 			List<FileNode> files  = helper.searchFiles(commit);
 			totalFiles+= files.size();
-			System.out.println("--------- File list created ---------");
-			for (int i=0; i<files.size();i++) {
-				int savedFiles = helper.saveCommit(commit, files);
-				totalRelationships += savedFiles;
-			}
+			System.out.println("--------- File list created for commit #"+cont+"---------");
+			cont+=1;
+			int savedFiles = helper.saveCommit(commit, files);
+			totalRelationships += savedFiles;
 			
 		});
 		

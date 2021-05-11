@@ -13,6 +13,8 @@ public class AvibSparkContext {
 		SparkConf conf = new SparkConf().setAppName("avib-spark").setMaster("local[*]").set("spark.executor.memory", "4g").
                 set("spark.driver.host", "127.0.0.1").set("spark.driver.bindAddress", "127.0.0.1");
 		setContext(new JavaSparkContext(conf));
+		getContext().setLogLevel("WARN");
+
 	}
 	
 	public static AvibSparkContext getInstance() {
