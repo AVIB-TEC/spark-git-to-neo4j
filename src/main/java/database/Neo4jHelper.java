@@ -63,7 +63,6 @@ public class Neo4jHelper {
             FileNode current = files.get(i);
             for (int j = 0; j < files.size(); j++) {
             	if(current != files.get(j)) {
-               		savedFiles++;
                		instance.commitFileRelationship(projectId, current, files.get(j));
                	}
     				
