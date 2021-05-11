@@ -30,7 +30,8 @@ public class App implements Serializable {
 	private int totalFiles;
 	private int totalRelationships;
 	private int cont;
-	
+    boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+
 	
 	private String processData() {
 		long startTime = System.nanoTime();
@@ -85,18 +86,26 @@ public class App implements Serializable {
 	}
 	
 	private boolean getGitData() {
-		File tempFile = new File(workDir + "\\public\\log.txt"); 
+		
+		File tempFile;
+		if(isWindows) {
+			tempFile = new File(workDir + "\\public\\log.txt");
+		}
+		else {
+			tempFile = new File(workDir + "/public/log.txt");
+		}
+		 
 	    if (!deleteFile(tempFile)) {
 	    	return false;
 	    }
 	    
-	    boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 	    if(isWindows) {
+	    	System.out.println("Running Windows");
 	    	List<ProcessBuilder> builders = Arrays.asList(
 		    	      new ProcessBuilder("cmd.exe", "/c","if exist", workDir + "\\public\\repo\\", "rmdir", "/s", "/q", workDir + "\\public\\repo\\"), 
-		    	      new ProcessBuilder("cmd.exe", "/c","mkdir", "repo"),
+		    	      new ProcessBuilder("cmd.exe", "/c","mkdir", "\\public\\repo"),
 		    	      new ProcessBuilder("cmd.exe", "/c","git", "clone", config.getProperty("repository_url"), workDir + "\\public\\repo"),
-		    	      new ProcessBuilder("cmd.exe", "/c","git --git-dir=./repo\\.git   log --stat --name-only >> "+ workDir+"\\"+config.getProperty("file_log_url")),
+		    	      new ProcessBuilder("cmd.exe", "/c","git --git-dir=./repo\\.git   log --stat --name-only >> "+ workDir+"\\public\\log.txt"),
 		    	      new ProcessBuilder("cmd.exe", "/c","rmdir", "/s", "/q",  workDir + "\\public\\repo\\")  
 		    		);
 	    	for (int i =0; i< builders.size();i++) {
@@ -110,16 +119,16 @@ public class App implements Serializable {
 			}
 	    }
 	    else {
-	    	System.out.println("Running Linux ");
+	    	System.out.println("Running Linux");
 	    	List<ProcessBuilder> builders = Arrays.asList(
-	    			new ProcessBuilder("/bin/bash", "/c","if exist", workDir + "/public/repo/", "rm", "-f", workDir + "/public/repo/"), 
-	    			new ProcessBuilder("/bin/bash", "/c","mkdir", "public/repo"),
-	    			new ProcessBuilder("/bin/bash", "/c","git", "clone", config.getProperty("repository_url"), workDir + "/public/repo"),
-	    			new ProcessBuilder("/bin/bash", "/c","git --git-dir=./repo/.git   log --stat --name-only >> "+ workDir+"/"+config.getProperty("file_log_url")),
-	    			new ProcessBuilder("/bin/bash", "/c","rm", "-RF",  workDir + "/public/repo/")  
+	    			//new ProcessBuilder("/bin/bash", "-c","if exist", workDir + "/public/repo/", "rm", "-f", workDir + "/public/repo/"), 
+	    			new ProcessBuilder("/bin/bash", "-c","mkdir -p ./public/repo"),
+	    			new ProcessBuilder("/bin/bash", "-c","git clone " + config.getProperty("repository_url")+" "+ workDir + "/public/repo"),
+	    			new ProcessBuilder("/bin/bash", "-c","git --git-dir=./public/repo/.git   log --stat --name-only >> "+ workDir+"/public/log.txt")
+	    			//new ProcessBuilder("/bin/bash", "-c","rm -RF "+ workDir + "/public/repo/")  
 	    	);
 	    	for (int i =0; i< builders.size();i++) {
-				builders.get(i).directory(new File("public"));
+				builders.get(i).directory(new File(workDir + "/public"));
 			}
 		    try {
 				executeCommand(builders);
@@ -147,7 +156,14 @@ public class App implements Serializable {
 	}
 	
 	public String getCommits() {
-		String filePath = this.workDir+"\\public\\log.txt";
+		String filePath;
+		if(isWindows) {
+			filePath = this.workDir+"\\public\\log.txt";
+		}
+		else{
+			filePath = this.workDir+"/public/log.txt";
+		}
+		
 		String content = null;
 	    try {
 	    	byte[] encoded = Files.readAllBytes(Paths.get(filePath));
@@ -162,7 +178,12 @@ public class App implements Serializable {
 		
 		for (int i = 0; i < builders.size(); i++) {
 			ProcessBuilder builder = builders.get(i);
-			builder.directory(new File("public"));
+			if(isWindows) {
+				builder.directory(new File("public"));
+			}
+			else {
+				builder.directory(new File(workDir));	
+			}
 		    builder.redirectErrorStream(true);
 		    builder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 		    builder.redirectError(ProcessBuilder.Redirect.INHERIT);
