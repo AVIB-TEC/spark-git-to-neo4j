@@ -26,8 +26,10 @@ public class Connector implements AutoCloseable{
 	
     public Connector() {
     	//loadConfig();
-    	
-    	driver = GraphDatabase.driver( "bolt://host.docker.internal:7687", AuthTokens.basic("neo4j", "admin"));
+    	//Use this line to run on the cluster
+    	driver = GraphDatabase.driver( "bolt://13.72.82.9:7687", AuthTokens.basic("neo4j", "admin"));
+    	//Uncomment this line to run using a contianer
+    	//driver = GraphDatabase.driver( "bolt://host.docker.internal:7687", AuthTokens.basic("neo4j", "admin"));
     	//Uncomment this line to run locally.
         //driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic("neo4j", "admin"));
     }
