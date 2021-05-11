@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "avibcluster-1b65"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "avibcluster-1b65"
+  template:
+    metadata:
+      labels:
+        app: "avibcluster-1b65"
+    spec:
+      containers:
+        - name: "avibcluster-1b65"
+          image: "avibregistry.azurecr.io/avibcluster"
+          ports:
+          - containerPort: 4040
