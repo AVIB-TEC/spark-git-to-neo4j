@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: "avibcluster-c055"
+    labels:
+        app: "avibcluster-c055"
+    annotations:
+        kubernetes.io/ingress.class: addon-http-application-routing
+spec:
+    rules:
+        - host: avibclusterc055-avibcluster-c055.107fdcdfc5624c01991c.eastus.aksapp.io
+          http:
+            paths:
+            - path: /
+              backend:
+                serviceName: "avibcluster-c055"
+                servicePort: 4040
