@@ -18,7 +18,7 @@ RUN ["mvn", "verify"]
 ADD src /code/src
 RUN ["mvn", "package"]
 
-EXPOSE 4567 4040
+EXPOSE 4040
 
 #CMD ["ls", "-R"]
 CMD ["java", "-jar", "target/avib-spark-jar-with-dependencies.jar"]
