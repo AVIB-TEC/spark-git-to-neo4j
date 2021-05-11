@@ -19,4 +19,4 @@ RUN ["mvn", "package"]
 
 EXPOSE 4567
 #CMD ["java", "--version"]
-CMD ["java", "-jar", "target/sparkexample-jar-with-dependencies.jar"]
+CMD ["java", "-jar", "target/avib-spark-jar-with-dependencies.jar"]
