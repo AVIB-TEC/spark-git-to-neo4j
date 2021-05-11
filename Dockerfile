@@ -1,10 +1,11 @@
-FROM openjdk:17-jdk-alpine3.13
+FROM openjdk:8u282-jdk
 
-RUN mkdir /usr/share/man/man1/
+
+#RUN mkdir /usr/share/man/man1/
 
 # Install maven
-RUN apk update
-RUN apk add maven
+RUN apt-get update
+RUN apt-get install -y maven
 
 WORKDIR /code
 
@@ -17,6 +18,7 @@ RUN ["mvn", "verify"]
 ADD src /code/src
 RUN ["mvn", "package"]
 
-EXPOSE 4567
-#CMD ["java", "--version"]
+EXPOSE 4567 4040
+
+#CMD ["ls", "-R"]
 CMD ["java", "-jar", "target/avib-spark-jar-with-dependencies.jar"]
