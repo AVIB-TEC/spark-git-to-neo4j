@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: "avibcluster-1b65"
+    labels:
+        app: "avibcluster-1b65"
+spec:
+    type: ClusterIP
+    ports:
+    - port: 4040
+      targetPort: 4040
+      protocol: TCP
+      name: http
+    selector:
+        app: "avibcluster-1b65"
