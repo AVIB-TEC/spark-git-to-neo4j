@@ -7,7 +7,7 @@
   <groupId>AVIB</groupId>
   <artifactId>SparkGitToNeo4j</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-
+  <packaging>jar</packaging>
   <name>SparkGitToNeo4j</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
@@ -79,6 +79,39 @@
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
+        <plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-dependency-plugin</artifactId>
+		    <executions>
+		        <execution>
+		            <id>copy-dependencies</id>
+		            <phase>prepare-package</phase>
+		            <goals>
+		                <goal>copy-dependencies</goal>
+		            </goals>
+		            <configuration>
+		                <outputDirectory>
+		                    ${project.build.directory}/libs
+		                </outputDirectory>
+		            </configuration>
+		        </execution>
+		    </executions>
+		</plugin>
+		<plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-jar-plugin</artifactId>
+		    <configuration>
+		        <archive>
+		            <manifest>
+		                <addClasspath>true</addClasspath>
+		                <classpathPrefix>libs/</classpathPrefix>
+		                <mainClass>
+		                    com.AVIB.SparkGitToNeo4j.App
+		                </mainClass>
+		            </manifest>
+		        </archive>
+		    </configuration>
+		</plugin>
       </plugins>
     </pluginManagement>
   </build>
